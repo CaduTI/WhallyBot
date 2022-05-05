@@ -1,158 +1,61 @@
 import requests
 import telebot
 import re
+from classes import Usuario
 
-moeda_dict = {}
-user = {}
+
+user_dict = {}
 api_key = "5191904654:AAFrD8ybCk8N06Xx4yVbSH2r-hsxQ6k7jxE"
 bot = telebot.TeleBot(api_key)
 
 
-@bot.message_handler(commands=['DolarAmericano'])
-def dolar(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/USD')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['USDBRl']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
+@bot.message_handler(commands=['Moedas'])
+def menu_moedas(message):
+    moedas = """
+    /DolarAmericano
+    /RealBrasileiro
+    /KwanzaAngolano
+    /Euro
+    /PesoArgentina
+    /Rublo
+    /Franco
+    /DolarCanadense
+    /Dogecoin
+    /Bitcoin
+    /Ethereum
+    """
+    bot.send_message(message.chat.id, moedas)
+    bot.register_next_step_handler(message, get_bid)
 
 
-@bot.message_handler(commands=["RealBrasileiro"])
-def real(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/USD-BRL')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['USDBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["KwanzaAngolano"])
-def kwanza(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/KWA')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['AOABRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["Euro"])
-def euro(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/EUR')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['EURBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["PesoArgentino"])
-def peso_arg(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/ARS')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['ARSBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["Rublo"])
-def rublo(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/RUB')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['RUBBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["FrancoSuico"])
-def franco_sui(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/CHF')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['CHFBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["DolarCanadense"])
-def dolar_canada(message):
-    try:
-
-        request = requests.get('https://economia.awesomeapi.com.br/last/CAD')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['CADBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["Dogecoin"])
-def dogecoin(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/DOGE')
-        moeda_info = request.json()
-        print(moeda_info)
-        print(request)
-
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['DOGEBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["Bitcoin"])
-def bitcoin(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/BTC')
-        moeda_info = request.json()
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['BTCBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
-
-
-@bot.message_handler(commands=["Ethereum"])
-def ethereum(message):
-    try:
-        request = requests.get('https://economia.awesomeapi.com.br/last/ETH')
-        moeda_info = request.json()
-        bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['ETHBRL']['bid']))
-        bot.register_next_step_handler(message, sugestao)
-    except Exception as e:
-        print(e)
+def get_bid(message):
+    moedas_dict = {
+        "/DolarAmericano": "USD",
+        "/RealBrasileiro": "BRL",
+        "/KwanzaAngolano": "AOA",
+        "/Euro": "EUR",
+        "/PesoArgentina": "ARG",
+        "/Rublo": "RUB",
+        "/Franco": "CHF",
+        "/DolarCanadense": "CAD",
+        "/Dogecoin": "DOGE",
+        "/Bitcoin": "BTC",
+        "/Ethereum": "ETH"
+    }
+    nome = message.text
+    for nome in moedas_dict.keys():
+        if nome in moedas_dict:
+            tag = moedas_dict.get(nome)
+            request = requests.get('https://economia.awesomeapi.com.br/last/{}'.format(tag))
+            request_json = request.json()
+            print(request_json)
+            bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(request_json[f'{moedas_dict.get(nome)}BRL']['bid']))
+            bot.register_next_step_handler(message, sugestao)
+        if moedas_dict.get(nome) == 'BRL':
+            request = requests.get('https://economia.awesomeUSDapi.com.br/last/-BRL/')
+            moeda_info = request.json()
+            bot.reply_to(message, " 💸 Segue a cotação da moeda:{}.Deseja algo a mais?".format(moeda_info['USDBRl']['bid']))
+            bot.register_next_step_handler(message, sugestao)
 
 
 def sugestao(message):
@@ -228,6 +131,8 @@ def moeda_insert(message):
     contador = message.text
     for contador in moedas.keys():
         if contador in moedas:
+            tag = moedas.get(contador)
+            #adicionar a tag da moeda no dicionário da mesma, após isso registar como atributo na classe usuario
             bot.register_next_step_handler(message, cadastro)
 
 
@@ -249,24 +154,6 @@ def teste(message):
     caso contrário temos o envio da cotação pelo canal do telegram.
     """
     bot.send_message(message.chat.id, whally_text)
-
-
-@bot.message_handler(commands=['Moedas'])
-def menu_moedas(message):
-    moedas = """
-    /DolarAmericano
-    /RealBrasileiro
-    /KwanzaAngolano
-    /Euro
-    /PesoArgentina
-    /Rublo
-    /Franco
-    /DolarCanadense
-    /Dogecoin
-    /Bitcoin
-    /Ethereum
-    """
-    bot.send_message(message.chat.id, moedas)
 
 
 def verificar(message):
