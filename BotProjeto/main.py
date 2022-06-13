@@ -2,34 +2,15 @@ import requests
 import telebot
 import re
 import pyodbc
-from datetime import datetime
 
 user_dict = {}
 api_key = "5191904654:AAFrD8ybCk8N06Xx4yVbSH2r-hsxQ6k7jxE"
 bot = telebot.TeleBot(api_key)
 
-#############SQL CONECTION#############
+
 conn = pyodbc.connect(Driver='SQL Server', host='DESKTOP-2RPK1J7', database='WhallyBot')
 cur = conn.cursor()
-print("Estamos Conectado em nossa base")
 
-
-now = datetime.now()
-current_time = now.strftime("%H:%M")
-print(current_time)
-
-"""def daily_message():
-    cur.execute('USE WhallyBot')
-    sql = 'SELECT* FROM EnvioEmail'
-    #usar o for e if para percorer as lihas do retorno
-    request = requests.get('https://economia.awesomeapi.com.br/last/{tag da moeda do cara}')
-    text = 'Olá {nome do cliente},Segue a cotação do{nome moeda}:{cotação}'
-    telegram = "message.chat.id"
-    ret_msg = bot.send_message(telegram, text)
-    if currenttime= ='17:30':
-        bot.send_message(idchat, "mymessage")
-    return ret_msg.message_id
-    """
 
 class User:
     def __init__(self, name):
@@ -63,7 +44,6 @@ def menu_moedas(message):
     moedas = """
     /DolarAmericano
     /RealBrasileiro
-    /KwanzaAngolano
     /Euro
     /PesoArgentino
     /Rublo
@@ -117,26 +97,6 @@ def real(message):
    except Exception as e:
        print(e)
 
-
-@bot.message_handler(commands=["KwanzaAngolano"])
-def kwanza(message):
-   try:
-       if True:
-           box = """
-            💸 Segue a cotação da moeda:{}, deseja algo a mais? 
-            Gostaria de cadastrar seu email? fácil e prático não demorará nada 😊:
-
-            /Sim
-            /Nao"""
-           request = requests.get('https://economia.awesomeapi.com.br/last/AOA')
-           moeda_info = request.json()
-           print(moeda_info)
-           print(request)
-
-           bot.reply_to(message, box.format(moeda_info['AOABRL']['bid']))
-       bot.register_next_step_handler(message, sugestao)
-   except Exception as e:
-       print(e)
 
 
 @bot.message_handler(commands=["Euro"])
@@ -330,6 +290,7 @@ def pega_nome(message):
     bot.send_message(telegram_id, "Qual o seu nome?")
     bot.register_next_step_handler(message, pega_email)
 
+
 def pega_email(message):
     telegram_id = message.chat.id
     name = message.text
@@ -343,7 +304,7 @@ def pega_email(message):
 def valida_email(message):
     try:
         email = message.text
-        if re.search(r'^([a-z]){1,}([a-z0-9._-]){1,}([@]){1}([a-z]){2,}([.]){1}([a-z]){2,}([.]?){1}([a-z]?){2,}$', email):
+        if re.search(r'[a-zA-z0-9_.]+@[a-zA-z0-9]\w+[.]\w{2,3}$', email):
             user_dict[email] = email
             User.email = email
             print(User.email)
@@ -363,7 +324,6 @@ def moeda(message):
     
     /DolarAmericano
     /RealBrasileiro
-    /KwanzaAngolano
     /Euro
     /PesoArgentina
     /Rublo
@@ -391,32 +351,32 @@ def moeda_insert(message):
         "/Bitcoin": "BTC",
         "/Ethereum": "ETH"
     }
-    #investigar o pq de ir cadastrado na base como / junto do nome da moeda
-    telegram_id = message.chat.id
-    nome_moeda = message.text
-    if nome_moeda in moedas:
-        tag = moedas.get(nome_moeda)
-    user_dict['nome_moeda'] = nome_moeda
-    user_dict['tag'] = tag
-    print(user_dict)
-    user = user_dict[telegram_id]
-    print(user)
-    bot.send_message(telegram_id, "Obrigado por se cadastrar, ")
-    bot.register_next_step_handler(message, cadastro)
 
-
-def cadastro(message):
     telegram_id = message.chat.id
     user = user_dict[telegram_id]
     tag = user_dict.get('tag')
     moeda = user_dict.get('nome_moeda')
+    nome_moeda = message.text
+    retirada = '/'
+    if nome_moeda in moedas:
+        tag = moedas.get(nome_moeda)
+        for x in range(len(retirada)):
+            nome_moeda = nome_moeda.replace(retirada[x], "")
+        user_dict['nome_moeda'] = nome_moeda
+        user_dict['tag'] = tag
+        print(user_dict)
+        user = user_dict[telegram_id]
+        print(user)
+
     cur.execute("USE WhallyBot")
-    #realizar um alter table e aumentar o slot das tags
-    sql = f"INSERT INTO EnvioEmail(Nome, Email, Id_Telegram,Tag_Moeda, Moeda_Nome) values ('{user.name}', '{user.email}', '{telegram_id}', '{tag}', '{moeda}')"
+
+    sql = f"INSERT INTO EnvioEmail(Nome, Email, Id_Telegram,Tag_Moeda, Moeda_Nome) values ('{user.name}', '{User.email}','{telegram_id}', '{tag}', '{nome_moeda}')"
     cur.execute(sql)
     conn.commit()
     cur.close()
-    bot.send_message(telegram_id, "Cadastro efetudo com sucesso, nossas notificações são enviadas no período da manhã 😄😄😄😄")
+    bot.send_message(telegram_id,
+                     "Cadastro efetudo com sucesso, nossas notificações são enviadas no período da manhã 😄😄😄😄")
+    bot.register_next_step_handler(message, menu_inicial)
 
 
 @bot.message_handler(commands=['Nao'])
